@@ -21,7 +21,8 @@ register_router = Router()
 async def command_start_handler(message: Message, state: FSMContext) -> None:
     await state.set_state(RegisterForm.lang)
     keyboard = ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="🇺🇿 O'zbek tili"), KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
+        keyboard=[[KeyboardButton(text="🇺🇿 O'zbek tili"),
+                   KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
 
     await message.answer(f"Assalomu alaykum.\nKerakli tilni tanlang!", reply_markup=keyboard)
 
@@ -29,12 +30,21 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
 @register_router.message(RegisterForm.lang)
 async def lang_handler(message: Message, state: FSMContext) -> None:
     if message.text == "🇺🇿 O'zbek tili":
-        await state.set_data({'lang': 'uz'})
+        await state.update_data({'lang': 'uz'})
     elif message.text == "🇷🇺 Rus tili":
-        await state.set_data({'lang': 'ru'})
+        await state.update_data({'lang': 'ru'})
     data = await state.get_data()
     await state.set_state(RegisterForm.name)
 
     await message.answer(await get_word('name', data['lang']))
+
+
+@register_router.message(RegisterForm.name)
+async def name_handler(message: Message, state: FSMContext) -> None:
+    await state.update_data({'name': message.text})
+    data = await state.get_data()
+    await state.set_state(RegisterForm.phone)
+
+    await message.answer(await get_word('phone', data['lang']))
 
 
