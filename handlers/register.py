@@ -7,18 +7,34 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from utils import calculate, get_age
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.types.keyboard_button import KeyboardButton
 from aiogram import Router
+from aiogram.fsm.context import FSMContext
+from states.register import RegisterForm
+from utils import get_word
 
 register_router = Router()
 
 
 @register_router.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
+async def command_start_handler(message: Message, state: FSMContext) -> None:
+    await state.set_state(RegisterForm.lang)
     keyboard = ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="Tabriknomalar")]], resize_keyboard=True)
+        keyboard=[[KeyboardButton(text="🇺🇿 O'zbek tili"), KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
 
-    await message.answer(f"Assalomu alaykum.\nQuyidagi kerakli bo'limni tanlang!", reply_markup=keyboard)
+    await message.answer(f"Assalomu alaykum.\nKerakli tilni tanlang!", reply_markup=keyboard)
+
+
+@register_router.message(RegisterForm.lang)
+async def lang_handler(message: Message, state: FSMContext) -> None:
+    if message.text == "🇺🇿 O'zbek tili":
+        await state.set_data({'lang': 'uz'})
+    elif message.text == "🇷🇺 Rus tili":
+        await state.set_data({'lang': 'ru'})
+    data = await state.get_data()
+    await state.set_state(RegisterForm.name)
+
+    await message.answer(await get_word('name', data['lang']))
+
 

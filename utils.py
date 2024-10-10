@@ -1,3 +1,6 @@
+from contents import words
+
+
 async def get_age(name):
     users = {
         'John': 12,
@@ -23,3 +26,8 @@ async def calculate(text: str):
         return str(ans)
     except Exception as e:
         return f"{e}"
+
+
+async def get_word(key, lang = 'uz'):
+    word = words.get(key+ '-' + lang)
+    return word
