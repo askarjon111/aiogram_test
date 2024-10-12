@@ -7,10 +7,10 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
-from aiogram.types.keyboard_button import KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
+from sessions import register_customer
 from states.register import RegisterForm
 from utils import get_word
 
@@ -20,6 +20,7 @@ register_router = Router()
 @register_router.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext) -> None:
     await state.set_state(RegisterForm.lang)
+    await state.update_data({'telegram_id': message.from_user.id})
     keyboard = ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="🇺🇿 O'zbek tili"),
                    KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
@@ -36,7 +37,7 @@ async def lang_handler(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     await state.set_state(RegisterForm.name)
 
-    await message.answer(await get_word('name', data['lang']))
+    await message.answer(await get_word('name', data['lang']), reply_markup=ReplyKeyboardRemove())
 
 
 @register_router.message(RegisterForm.name)
@@ -48,3 +49,24 @@ async def name_handler(message: Message, state: FSMContext) -> None:
     await message.answer(await get_word('phone', data['lang']))
 
 
+@register_router.message(RegisterForm.phone)
+async def name_handler(message: Message, state: FSMContext) -> None:
+    await state.update_data({'phone': message.text})
+    data = await state.get_data()
+    await state.set_state(RegisterForm.company)
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=await get_word('skip', data['lang']))]], resize_keyboard=True)
+
+    await message.answer(await get_word('company', data['lang']), reply_markup=keyboard)
+
+
+@register_router.message(RegisterForm.company)
+async def name_handler(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    if not message.text == await get_word('skip', data['lang']):
+        await state.update_data({'company': message.text})
+    customer = await register_customer(state)
+    print(customer)
+    await state.clear()
+
+    await message.answer(await get_word('registered', data['lang']), reply_markup=ReplyKeyboardRemove())
