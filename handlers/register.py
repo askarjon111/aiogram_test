@@ -1,16 +1,10 @@
-import asyncio
-import logging
-import sys
-
 from aiogram import Bot, Dispatcher, html, F
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
-from sessions import register_customer
+from sessions import get_customer, register_customer
 from states.register import RegisterForm
 from utils import get_word
 
@@ -19,13 +13,17 @@ register_router = Router()
 
 @register_router.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext) -> None:
+    customer, registered = await get_customer(message.from_user.id)
+    if registered:
+        await message.answer(await get_word('welcome'))
+        return
     await state.set_state(RegisterForm.lang)
     await state.update_data({'telegram_id': message.from_user.id})
     keyboard = ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="🇺🇿 O'zbek tili"),
-                   KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
+                KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
 
-    await message.answer(f"Assalomu alaykum.\nKerakli tilni tanlang!", reply_markup=keyboard)
+    await message.answer(await get_word('lang'), reply_markup=keyboard)
 
 
 @register_router.message(RegisterForm.lang)

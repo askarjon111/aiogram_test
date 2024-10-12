@@ -16,3 +16,14 @@ async def register_customer(state: FSMContext):
 
     except Exception as e:
         return f'{e}', False
+
+
+async def get_customer(telegram_id):
+    try:
+        async with ClientSession() as session:
+            async with session.get(f'{SITE_NAME}/api/customer/', params={'telegram_id': telegram_id}) as response:
+                return await response.json(), response.status==200
+
+    except Exception as e:
+        return f'{e}', False
+

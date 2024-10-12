@@ -1,4 +1,7 @@
 words = {
+    'lang-uz': "Assalomu alaykum, tilni tanlang 👇",
+    'welcome-uz': "Assalomu alaykum, xush kelibsiz!",
+    'welcome-ru': "Здравствуйте, добро пожаловать!",
     'name-uz': "Ismingizni kiriting: ",
     'name-ru': "Введите свое имя: ",
     'phone-uz': "Telefon raqamingizni kiriting: ",
