@@ -12,6 +12,7 @@ async def register_customer(state: FSMContext):
     try:
         async with ClientSession() as session:
             async with session.post(f'{SITE_NAME}/api/customer/create/', json=await state.get_data()) as response:
+                print(await response.json(), response.status)
                 return await response.json(), response.status==201
 
     except Exception as e:
@@ -22,7 +23,8 @@ async def get_customer(telegram_id):
     try:
         async with ClientSession() as session:
             async with session.get(f'{SITE_NAME}/api/customer/', params={'telegram_id': telegram_id}) as response:
-                return await response.json(), response.status==200
+                data = await response.json()
+                return data['customer'], response.status==200
 
     except Exception as e:
         return f'{e}', False

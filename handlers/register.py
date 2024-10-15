@@ -15,13 +15,18 @@ register_router = Router()
 async def command_start_handler(message: Message, state: FSMContext) -> None:
     customer, registered = await get_customer(message.from_user.id)
     if registered:
-        await message.answer(await get_word('welcome'))
+        print('here')
+        keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=await get_word('tabriknomalar', customer['lang'])),
+                   KeyboardButton(text=await get_word('devor', customer['lang']))]],
+        resize_keyboard=True)
+        await message.answer(await get_word('welcome'), reply_markup=keyboard)
         return
     await state.set_state(RegisterForm.lang)
     await state.update_data({'telegram_id': message.from_user.id})
     keyboard = ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="🇺🇿 O'zbek tili"),
-                KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
+                   KeyboardButton(text="🇷🇺 Rus tili")]], resize_keyboard=True)
 
     await message.answer(await get_word('lang'), reply_markup=keyboard)
 
@@ -48,7 +53,7 @@ async def name_handler(message: Message, state: FSMContext) -> None:
 
 
 @register_router.message(RegisterForm.phone)
-async def name_handler(message: Message, state: FSMContext) -> None:
+async def phone_handler(message: Message, state: FSMContext) -> None:
     await state.update_data({'phone': message.text})
     data = await state.get_data()
     await state.set_state(RegisterForm.company)
@@ -59,12 +64,15 @@ async def name_handler(message: Message, state: FSMContext) -> None:
 
 
 @register_router.message(RegisterForm.company)
-async def name_handler(message: Message, state: FSMContext) -> None:
+async def company_handler(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     if not message.text == await get_word('skip', data['lang']):
         await state.update_data({'company': message.text})
-    customer = await register_customer(state)
-    print(customer)
+    await register_customer(state)
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=await get_word('tabriknomalar', data['lang'])),
+                   KeyboardButton(text=await get_word('devor', data['lang']))]],
+        resize_keyboard=True)
     await state.clear()
 
-    await message.answer(await get_word('registered', data['lang']), reply_markup=ReplyKeyboardRemove())
+    await message.answer(await get_word('registered', data['lang']), reply_markup=keyboard)
