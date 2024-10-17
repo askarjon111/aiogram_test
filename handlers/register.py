@@ -15,12 +15,11 @@ register_router = Router()
 async def command_start_handler(message: Message, state: FSMContext) -> None:
     customer, registered = await get_customer(message.from_user.id)
     if registered:
-        print('here')
         keyboard = ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text=await get_word('tabriknomalar', customer['lang'])),
                    KeyboardButton(text=await get_word('devor', customer['lang']))]],
         resize_keyboard=True)
-        await message.answer(await get_word('welcome'), reply_markup=keyboard)
+        await message.answer(await get_word('welcome', customer['lang']), reply_markup=keyboard)
         return
     await state.set_state(RegisterForm.lang)
     await state.update_data({'telegram_id': message.from_user.id})
