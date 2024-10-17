@@ -39,3 +39,15 @@ async def get_categories():
 
     except Exception as e:
         return f'{e}'
+
+
+async def get_events(category):
+    try:
+        async with ClientSession() as session:
+            async with session.get(f'{SITE_NAME}/api/products/events/', params={'category': category}) as response:
+                data = await response.json()
+                return data
+
+    except Exception as e:
+        return f'{e}'
+
